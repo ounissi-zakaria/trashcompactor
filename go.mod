@@ -1,4 +1,4 @@
-module github.com/michael1026/trashcompactor
+module github.com/ounissi-zakaria/trashcompactor
 
 go 1.19
 
