@@ -200,9 +200,19 @@ func producer(urls []string, reqChan chan Request) {
 		}
 		req.Close = true
 		req.Header.Add("Connection", "close")
-		req.Header.Add("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/81.0")
+		req.Header.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8")
 		req.Header.Add("Accept-Language", "en-US,en;q=0.9")
-		req.Header.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
+		req.Header.Add("Priority", "u=0, i")
+		req.Header.Add("Sec-Ch-Ua", "\"Chromium\";v=\"148\", \"Brave\";v=\"148\", \"Not/A)Brand\";v=\"99\"")
+		req.Header.Add("Sec-Ch-Ua-Mobile", "?0")
+		req.Header.Add("Sec-Ch-Ua-Platform", "\"Linux\"")
+		req.Header.Add("Sec-Fetch-Dest", "document")
+		req.Header.Add("Sec-Fetch-Mode", "navigate")
+		req.Header.Add("Sec-Fetch-Site", "none")
+		req.Header.Add("Sec-Fetch-User", "?1")
+		req.Header.Add("Sec-Gpc", "1")
+		req.Header.Add("Upgrade-Insecure-Requests", "1")
+		req.Header.Add("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36")
 
 		reqChan <- Request{req, url}
 	}
