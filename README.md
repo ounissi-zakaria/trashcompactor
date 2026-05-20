@@ -6,7 +6,7 @@ This tool now supports JSON as well. Uniqueness of JSON responses are based on w
 Because of how the tool works, it will only return pages with a content type of text/html or application/json and a response code of 200. 
 
 ### Installation
-`go install github.com/michael1026/trashcompactor@latest`
+`go install github.com/ounissi-zakaria/trashcompactor@latest`
 
 ### Usage
 `cat URLs | trashcompactor`
