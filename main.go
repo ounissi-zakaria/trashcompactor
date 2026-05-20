@@ -12,6 +12,8 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"os"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -71,7 +73,10 @@ func buildHttpClient(jar *cookiejar.Jar) (c *http.Client) {
 	}
 
 	re := func(req *http.Request, via []*http.Request) error {
-		return http.ErrUseLastResponse
+		if len(via) >= 3 {
+			return http.ErrUseLastResponse
+		}
+		return nil
 	}
 
 	client := &http.Client{
@@ -105,13 +110,14 @@ func main() {
 	}
 
 	reqChan := make(chan Request)
-	done := make(chan bool)
+	var wg sync.WaitGroup
 
 	go producer(urls, reqChan)
 	for i := 0; i < threads; i++ {
-		go consumer(reqChan, done)
+		wg.Add(1)
+		go consumer(reqChan, &wg)
 	}
-	<-done
+	wg.Wait()
 
 	if *outputJson != "" {
 		jsonFile, err := json.Marshal(jsonResults)
@@ -131,8 +137,11 @@ func main() {
 
 func printUniqueContentURLs(resp http.Response, rawUrl string) {
 	if resp.StatusCode == http.StatusOK {
+		defer resp.Body.Close()
+		contentType := resp.Header.Get("content-type")
 		resource := ""
-		if len(resp.Header.Get("content-type")) >= 9 && resp.Header.Get("content-type")[:9] == "text/html" {
+
+		if contentType == "" || strings.HasPrefix(contentType, "text/html") {
 			doc, err := goquery.NewDocumentFromReader(resp.Body)
 
 			if err != nil {
@@ -153,7 +162,7 @@ func printUniqueContentURLs(resp http.Response, rawUrl string) {
 			})
 
 			AddAndPrintIfUnique(urlMap, resource, rawUrl, "text/html")
-		} else if len(resp.Header.Get("content-type")) >= 16 && resp.Header.Get("content-type")[:16] == "application/json" {
+		} else if strings.HasPrefix(contentType, "application/json") {
 			var resultMap map[string]interface{}
 			body, err := ioutil.ReadAll(resp.Body)
 
@@ -200,7 +209,8 @@ func producer(urls []string, reqChan chan Request) {
 
 }
 
-func consumer(reqChan chan Request, done chan bool) {
+func consumer(reqChan chan Request, wg *sync.WaitGroup) {
+	defer wg.Done()
 	for req := range reqChan {
 		if req.Request != nil {
 			resp, err := client.Do(req.Request)
@@ -210,5 +220,4 @@ func consumer(reqChan chan Request, done chan bool) {
 			}
 		}
 	}
-	done <- true
 }
